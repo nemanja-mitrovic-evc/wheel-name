@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spinning Wheel (No Canvas)</title>
+    <title>Spinning Wheel</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,63 +12,11 @@
             padding: 20px;
         }
 
-        .wheel-container {
-            position: relative;
-            width: 300px;
-            height: 300px;
+        canvas {
             margin: 20px auto;
-            border: 5px solid #333;
+            display: block;
+            border: 2px solid #333;
             border-radius: 50%;
-            overflow: hidden;
-        }
-
-        .wheel {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            transform: rotate(0deg);
-            transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
-        }
-
-        .slice {
-            position: absolute;
-            width: 50%;
-            height: 50%;
-            background-color: transparent;
-            transform-origin: 100% 100%;
-            clip-path: polygon(100% 100%, 0% 100%, 100% 0%);
-        }
-
-        .slice span {
-            position: absolute;
-            top: 50%;
-            right: 10%;
-            transform: translate(50%, -50%) rotate(0deg);
-            transform-origin: left center;
-            font-size: 16px;
-            font-weight: bold;
-            color: #000;
-        }
-
-        .slice:nth-child(1) { background-color: #FF6F61; transform: rotate(0deg); }
-        .slice:nth-child(2) { background-color: #6B5B95; transform: rotate(60deg); }
-        .slice:nth-child(3) { background-color: #88B04B; transform: rotate(120deg); }
-        .slice:nth-child(4) { background-color: #F7CAC9; transform: rotate(180deg); }
-        .slice:nth-child(5) { background-color: #92A8D1; transform: rotate(240deg); }
-        .slice:nth-child(6) { background-color: #F4E285; transform: rotate(300deg); }
-
-        .pointer {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 15px solid transparent;
-            border-right: 15px solid transparent;
-            border-bottom: 20px solid #333;
-            z-index: 10;
         }
 
         button {
@@ -79,7 +27,6 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
         }
 
         button:hover {
@@ -90,43 +37,103 @@
 <body>
     <h1>Spinning Wheel</h1>
     <p>Click the "Spin" button to spin the wheel!</p>
-    <div class="wheel-container">
-        <div class="pointer"></div>
-        <div class="wheel" id="wheel">
-            <div class="slice"><span>Prize 1</span></div>
-            <div class="slice"><span>Prize 2</span></div>
-            <div class="slice"><span>Prize 3</span></div>
-            <div class="slice"><span>Prize 4</span></div>
-            <div class="slice"><span>Prize 5</span></div>
-            <div class="slice"><span>Prize 6</span></div>
-        </div>
-    </div>
+    <canvas id="wheelCanvas" width="500" height="500"></canvas>
     <button onclick="spinWheel()">Spin</button>
 
     <script>
-        let isSpinning = false;
+        const canvas = document.getElementById("wheelCanvas");
+        const ctx = canvas.getContext("2d");
 
-        function spinWheel() {
-            if (isSpinning) return;
+        const wheelRadius = canvas.width / 2;
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const sections = ["Prize 1", "Prize 2", "Prize 3", "Prize 4", "Prize 5", "Prize 6"];
+        
+        // Modern vibrant color palette
+        const colors = [
+            "#FF6F61", // Coral
+            "#6B5B95", // Purple
+            "#88B04B", // Olive Green
+            "#F7CAC9", // Light Pink
+            "#92A8D1", // Light Blue
+            "#F4E285"  // Soft Yellow
+        ];
 
-            isSpinning = true;
-            const wheel = document.getElementById("wheel");
+        let angle = 0;
+        let spinning = false;
+        let spinVelocity = 0;
 
-            // Random spin angle between 360 and 3600 degrees
-            const spinAngle = Math.floor(Math.random() * 3600) + 360;
+        // Draw the wheel
+        function drawWheel() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Rotate the wheel
-            wheel.style.transform = `rotate(${spinAngle}deg)`;
+            const sectionAngle = (2 * Math.PI) / sections.length;
 
-            // Stop spinning after the animation ends
-            setTimeout(() => {
-                isSpinning = false;
-                const finalAngle = spinAngle % 360;
-                const section = Math.floor(finalAngle / 60);
-                const prizes = ["Prize 6", "Prize 5", "Prize 4", "Prize 3", "Prize 2", "Prize 1"];
-                alert(`You won: ${prizes[section]}!`);
-            }, 4000); // Match the CSS transition duration
+            for (let i = 0; i < sections.length; i++) {
+                const startAngle = i * sectionAngle + angle;
+                const endAngle = startAngle + sectionAngle;
+
+                // Draw section
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, wheelRadius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + sectionAngle / 2);
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#333";
+                ctx.font = "18px Arial";
+
+                // Adjust the text position based on the radius
+                ctx.fillText(sections[i], wheelRadius * 0.6, 5);
+                ctx.restore();
+            }
+
+            // Draw center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fill();
+            ctx.stroke();
         }
+
+        // Spin the wheel
+        function spinWheel() {
+            if (spinning) return;
+            spinning = true;
+            spinVelocity = Math.random() * 10 + 15; // Random initial spin velocity
+
+            const spin = () => {
+                angle += spinVelocity * (Math.PI / 180);
+                spinVelocity *= 0.98; // Decrease velocity to simulate friction
+
+                if (spinVelocity < 0.1) {
+                    spinning = false;
+                    spinVelocity = 0;
+                    determineWinner();
+                } else {
+                    requestAnimationFrame(spin);
+                }
+
+                drawWheel();
+            };
+
+            spin();
+        }
+
+        // Determine the winner
+        function determineWinner() {
+            const sectionAngle = (2 * Math.PI) / sections.length;
+            const winningIndex = Math.floor((2 * Math.PI - (angle % (2 * Math.PI))) / sectionAngle) % sections.length;
+            alert(`You won: ${sections[winningIndex]}!`);
+        }
+
+        drawWheel();
     </script>
 </body>
 </html>

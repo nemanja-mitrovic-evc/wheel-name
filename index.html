@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spinning Wheel (No Canvas)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border: 5px solid #333;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .wheel {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transform: rotate(0deg);
+            transition: transform 4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        .slice {
+            position: absolute;
+            width: 50%;
+            height: 50%;
+            background-color: transparent;
+            transform-origin: 100% 100%;
+            clip-path: polygon(100% 100%, 0% 100%, 100% 0%);
+        }
+
+        .slice span {
+            position: absolute;
+            top: 50%;
+            right: 10%;
+            transform: translate(50%, -50%) rotate(0deg);
+            transform-origin: left center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .slice:nth-child(1) { background-color: #FF6F61; transform: rotate(0deg); }
+        .slice:nth-child(2) { background-color: #6B5B95; transform: rotate(60deg); }
+        .slice:nth-child(3) { background-color: #88B04B; transform: rotate(120deg); }
+        .slice:nth-child(4) { background-color: #F7CAC9; transform: rotate(180deg); }
+        .slice:nth-child(5) { background-color: #92A8D1; transform: rotate(240deg); }
+        .slice:nth-child(6) { background-color: #F4E285; transform: rotate(300deg); }
+
+        .pointer {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 20px solid #333;
+            z-index: 10;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Spinning Wheel</h1>
+    <p>Click the "Spin" button to spin the wheel!</p>
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="wheel" id="wheel">
+            <div class="slice"><span>Prize 1</span></div>
+            <div class="slice"><span>Prize 2</span></div>
+            <div class="slice"><span>Prize 3</span></div>
+            <div class="slice"><span>Prize 4</span></div>
+            <div class="slice"><span>Prize 5</span></div>
+            <div class="slice"><span>Prize 6</span></div>
+        </div>
+    </div>
+    <button onclick="spinWheel()">Spin</button>
+
+    <script>
+        let isSpinning = false;
+
+        function spinWheel() {
+            if (isSpinning) return;
+
+            isSpinning = true;
+            const wheel = document.getElementById("wheel");
+
+            // Random spin angle between 360 and 3600 degrees
+            const spinAngle = Math.floor(Math.random() * 3600) + 360;
+
+            // Rotate the wheel
+            wheel.style.transform = `rotate(${spinAngle}deg)`;
+
+            // Stop spinning after the animation ends
+            setTimeout(() => {
+                isSpinning = false;
+                const finalAngle = spinAngle % 360;
+                const section = Math.floor(finalAngle / 60);
+                const prizes = ["Prize 6", "Prize 5", "Prize 4", "Prize 3", "Prize 2", "Prize 1"];
+                alert(`You won: ${prizes[section]}!`);
+            }, 4000); // Match the CSS transition duration
+        }
+    </script>
+</body>
+</html>
